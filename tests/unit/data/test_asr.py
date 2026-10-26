@@ -90,20 +90,26 @@ def test_unicode_marks_and_no_nfkc():
     assert normalize_asr_tokens("Ａ") != normalize_asr_tokens("A")
 
 
+MANDARIN_CER = {
+    "language": "cmn",
+    "task": "ordinary_asr",
+    "reward_metric": "cer",
+    "cer_whitespace_mode": "han_adjacent",
+}
+
+
 def test_mandarin_routing():
-    metadata = {
-        "language": "cmn",
-        "task": "ordinary_asr",
-        "reward_metric": "cer",
-        "cer_whitespace_mode": "han_adjacent",
-    }
-    assert asr_reward("今 天 use AI", "今天use AI", metadata) == 1
     with pytest.raises(ValueError):
-        asr_reward("你好", "你好", {**metadata, "reward_metric": "wer"})
+        asr_reward("你好", "你好", {**MANDARIN_CER, "reward_metric": "wer"})
     with pytest.raises(ValueError):
-        asr_reward("你好", "你好", {**metadata, "task": "sot"})
+        asr_reward("你好", "你好", {**MANDARIN_CER, "task": "sot"})
+
+
+def test_mandarin_cer():
+    pytest.importorskip("nemo_skills.evaluation.evaluator.audio")
+    assert asr_reward("今 天 use AI", "今天use AI", MANDARIN_CER) == 1
     with pytest.raises(ValueError):
-        asr_reward("", "你好", metadata)
+        asr_reward("", "你好", MANDARIN_CER)
 
 
 def test_incompatible_declared_input_order_is_rejected():
